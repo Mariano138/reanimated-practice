@@ -1,42 +1,38 @@
-import { View, StyleSheet, Button } from "react-native";
-import React from "react";
+import { StyleSheet, View } from "react-native";
+import {
+  Gesture,
+  GestureDetector,
+  GestureHandlerRootView,
+} from "react-native-gesture-handler";
 import Animated, {
+  useAnimatedStyle,
   useSharedValue,
   withTiming,
-  useAnimatedStyle,
-  withRepeat,
-  withSequence,
-  withDelay,
 } from "react-native-reanimated";
 
 export default function App() {
-  const valorInicial = useSharedValue(0);
-  const OFFSET = 40;
-  const TIME = 250;
-  const DELAY = 450;
-
-  const handlePress = () => {
-    valorInicial.value = withDelay(
-      DELAY,
-      withSequence(
-        withTiming(-OFFSET, { duration: TIME / 2 }),
-        withRepeat(withTiming(OFFSET, { duration: TIME }), 5, true),
-        withTiming(0, { duration: TIME / 2 })
-      )
-    );
-  };
+  const pressed = useSharedValue(false);
+  const tap = Gesture.Tap()
+    .onBegin(() => {
+      pressed.value = true;
+    })
+    .onFinalize(() => {
+      pressed.value = false;
+    });
 
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: valorInicial.value }],
+    backgroundColor: pressed.value ? "#FFE04B" : "#B58DF1",
+    transform: [{ scale: withTiming(pressed.value ? 1.2 : 1) }],
   }));
 
   return (
-    <>
-      <Animated.View style={[styles.box, animatedStyle]}></Animated.View>
+    <GestureHandlerRootView style={styles.container}>
       <View style={styles.container}>
-        <Button title="Shake!" onPress={handlePress} />
+        <GestureDetector gesture={tap}>
+          <Animated.View style={[styles.circle, animatedStyle]}></Animated.View>
+        </GestureDetector>
       </View>
-    </>
+    </GestureHandlerRootView>
   );
 }
 
@@ -45,12 +41,11 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
+    height: "100%",
   },
-  box: {
+  circle: {
     height: 120,
     width: 120,
-    backgroundColor: "#b58df1",
-    borderRadius: 20,
-    marginVertical: 50,
+    borderRadius: 500,
   },
 });
